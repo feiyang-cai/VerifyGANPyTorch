@@ -1,0 +1,5 @@
+/__pycache__
+/outputs/*.png
+/smaller_outputs/*.png
+*.log
+/src/__pycache__
