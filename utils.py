@@ -25,7 +25,7 @@ def orthogonal_regularization(model, device, beta=1e-4):
     return loss_orth * beta
 
 def taxi_input(b_size = 128, test=False, device='cuda'):
-    FloatTensor = torch.cuda.FloatTensor if device=='cuda' else torch.FloatTensor
+    FloatTensor = torch.cuda.FloatTensor if device!=torch.device("cpu") else torch.FloatTensor
     if test:
         z_noise = Variable(FloatTensor(np.random.uniform(-.8, .8, size=(b_size, 2))))
     else:

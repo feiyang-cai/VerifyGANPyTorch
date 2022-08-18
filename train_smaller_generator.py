@@ -7,13 +7,13 @@ import torch.nn as nn
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-SmallerG = SmallerGenerator(2, 2)
+SmallerG = SmallerGenerator(2, 2).to(device)
 
-G = Generator(2, 2)
+G = Generator(2, 2).to(device)
 G.load_state_dict(torch.load("./outputs/generator.pth", map_location=device))
 G.eval()
 
-D = Discriminator(2)
+D = Discriminator(2).to(device)
 D.load_state_dict(torch.load("./outputs/discriminator.pth", map_location=device))
 D.eval()
 
