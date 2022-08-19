@@ -13,10 +13,11 @@ class TaxiDataset(Dataset):
             y = np.array(y, dtype=np.float32)
             images = f.get('y_train')
             images = np.array(images, dtype=np.float32)
-            f.close()
+
         std1, std2 = np.std(y[:,0]), np.std(y[:, 1])
         y[:, 0] /= std1
         y[:, 1] /= std2
+        print(std1, std2)
         images = np.expand_dims(images, 1)
         self.images = images
         self.y = y[:, :2]

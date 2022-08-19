@@ -34,7 +34,7 @@ class SmallerGenerator(nn.Module):
         return t
 
 if __name__ == "__main__":
-    G = Generator(2, 2)
+    G = SmallerGenerator(2, 2)
 
     x = torch.randn(128, 2)
     y = torch.randn(128, 2)

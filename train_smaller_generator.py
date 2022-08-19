@@ -8,6 +8,7 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 SmallerG = SmallerGenerator(2, 2).to(device)
+SmallerG.train()
 
 G = Generator(2, 2).to(device)
 G.load_state_dict(torch.load("./outputs/generator.pth", map_location=device))
@@ -26,7 +27,7 @@ optimizer = optim.Adam(SmallerG.parameters(), lr=lr)
 criterion = nn.L1Loss().to(device)
 
 for epoch in range(num_epochs):
-    loss = 0.0
+    optimizer.zero_grad()
     z, y = taxi_input(b_size=256, device=device)
     x_tilde = SmallerG(z, y)
     with torch.no_grad():
