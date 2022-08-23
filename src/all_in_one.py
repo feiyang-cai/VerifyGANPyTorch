@@ -10,16 +10,17 @@ class AllInOne(nn.Module):
         self.smaller_generator = SmallerGenerator(2, 2)
         self.tiny_taxi_net = TinyTaxiNet()
         self.controller = nn.Linear(2, 1, bias=False)
+        self.denomalizer = nn.Linear(128, 128)
     
-    def forward(self, z, s):
-        x = self.smaller_generator(z, s)
-        x = (x + 1.0) / 2.0
-        a = self.controller(self.tiny_taxi_net(x.view(-1, 128)))
+    def forward(self, x):
+        x = self.smaller_generator.main(x)
+        x = self.denomalizer(x)
+        #x = self.tiny_taxi_net(x)
+        a = self.controller(self.tiny_taxi_net(x))
         return a
 
 if __name__ == "__main__":
     net = AllInOne()
-    z = torch.randn(128, 2)
-    s = torch.randn(128, 2)
-    print(net(z, s).shape)
+    x = torch.randn(128, 4)
+    print(net(x).shape)
 

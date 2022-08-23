@@ -5,21 +5,18 @@ net = AllInOne()
 net.smaller_generator.load_state_dict(torch.load("./smaller_outputs/smaller_generator.pth"))
 net.tiny_taxi_net.load_state_dict(torch.load("./models/nnet/TinyTaxiNet.pth"))
 net.controller.weight.data = torch.FloatTensor([[-0.74, -0.44]])
+net.denomalizer.weight.data = torch.FloatTensor(torch.eye(128)*0.5)
+net.denomalizer.bias.data = torch.FloatTensor(torch.ones_like(net.denomalizer.bias)*0.5)
+
 torch.save(net.state_dict(), "./models/allinone/AllInOne.pth")
 
-x = torch.randn(128, 2)
-y = torch.randn(128, 2)
+x = torch.randn(1, 4)
 
 torch.onnx.export(net, 
-                  (x,y),
+                  x,
                   "./models/allinone/AllInOne.onnx",
-                  export_params=True,        # store the trained parameter weights inside the model file
-                  opset_version=10,          # the ONNX version to export the model to
-                  do_constant_folding=True,  # whether to execute constant folding for optimization
                   input_names = ['input'],   # the model's input names
-                  output_names = ['output'], # the model's output names
-                  dynamic_axes={'input' : {0 : 'batch_size'},    # variable length axes
-                                'output' : {0 : 'batch_size'}})
+                  output_names = ['output']) # the model's output names
 
 
 

@@ -21,8 +21,9 @@ for initial_crosstrack_error in range(-8, 10, 2):
         s_torch = torch.FloatTensor(s_np).to(device)
         s_torch = s_torch.view(-1, 2)
         z = torch.FloatTensor(np.random.uniform(-.8, .8, size=(1, 2))).to(device)
+        x = torch.cat([z, s_torch], dim=1)
         with torch.no_grad():
-            a = net(z, s_torch)
+            a = net(x)
         s = next_state(s, a)
     plt.plot(ts, crosstrack_errors)
 

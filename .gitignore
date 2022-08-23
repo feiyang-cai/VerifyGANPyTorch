@@ -3,3 +3,4 @@
 /smaller_outputs/*.png
 *.log
 /src/__pycache__
+/verification

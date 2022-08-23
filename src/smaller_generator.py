@@ -29,6 +29,7 @@ class SmallerGenerator(nn.Module):
             torch.nn.init.orthogonal_(m.weight.data)
 
     def forward(self, x, y):
+        #t = self.main(x)
         t = self.main(torch.cat([x, y], dim=1))
         t = t.reshape(-1, 1, 8, 16)
         return t
