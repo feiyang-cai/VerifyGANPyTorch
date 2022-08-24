@@ -10,14 +10,14 @@ from tqdm import tqdm
 
 
 class Verification():
-    def __init__(self, onnx_filepath="./models/allinone/AllInOne.onnx", control_lb=-10.0, control_ub=+10.0, p_range=[-10, 10], p_num_bin=128, theta_range=[-30, 30], theta_num_bin=128, control_bound_precision=0.01) -> None:
+    def __init__(self, onnx_filepath="./models/allinone/AllInOne.onnx", control_lb=-10.0, control_ub=+10.0, p_range=[-10, 10], p_num_bin=128, theta_range=[-30, 30], theta_num_bin=128, control_bound_precision=0.1) -> None:
         self.control_lb = control_lb
         self.control_ub = control_ub
         self.p_bins = np.linspace(p_range[0], p_range[1], p_num_bin+1, endpoint=True)
         self.p_lbs = np.array(self.p_bins[:-1],dtype=np.float32)
         self.p_ubs = np.array(self.p_bins[1:], dtype=np.float32)
 
-        self.theta_bins = np.linspace(theta_range[0], theta_range[1], theta_num_bin+1, endpoint=False)
+        self.theta_bins = np.linspace(theta_range[0], theta_range[1], theta_num_bin+1, endpoint=True)
         self.theta_lbs = np.array(self.theta_bins[:-1],dtype=np.float32)
         self.theta_ubs = np.array(self.theta_bins[1:], dtype=np.float32)
         self.control_bound_precision = control_bound_precision
@@ -25,10 +25,10 @@ class Verification():
 
     def check_property(self, p_index, theta_index, mid, sign):
         init_box = [[-0.8, 0.8], [-0.8, 0.8]]
-        p_lb = self.p_lbs[p_index]
-        p_ub = self.p_ubs[p_index]
-        theta_lb = self.theta_lbs[theta_index]
-        theta_ub = self.theta_ubs[theta_index]
+        p_lb = self.p_lbs[p_index]/6.36615
+        p_ub = self.p_ubs[p_index]/6.36615
+        theta_lb = self.theta_lbs[theta_index]/17.247995
+        theta_ub = self.theta_ubs[theta_index]/17.247995
         init_box.extend([[p_lb, p_ub], [theta_lb, theta_ub]])
         init_box = np.array(init_box, dtype=np.float32)
         Settings.PRINT_OUTPUT = False
@@ -82,8 +82,8 @@ class Verification():
         for step in range(steps): # 1s
             p_lb = p_lb + v*dt*math.sin(math.radians(theta_lb))
             p_ub = p_ub + v*dt*math.sin(math.radians(theta_ub))
-            theta_lb = theta_lb + v/L*dt*math.tan(math.radians(control_lb))
-            theta_ub = theta_ub + v/L*dt*math.tan(math.radians(control_ub))
+            theta_lb = theta_lb + math.degrees(v/L*dt*math.tan(math.radians(control_lb)))
+            theta_ub = theta_ub + math.degrees(v/L*dt*math.tan(math.radians(control_ub)))
         
         return (p_lb, p_ub), (theta_lb, theta_ub)
         
@@ -95,7 +95,10 @@ class Verification():
         p_ub = self.p_ubs[p_index]
         theta_lb = self.theta_lbs[theta_index]
         theta_ub = self.theta_ubs[theta_index]
-        control_lb, control_ub = self.control_graph[p_index, theta_index]#self.find_control_bound(p_index, theta_index)
+        if hasattr(self, "control_graph"):
+            control_lb, control_ub = self.control_graph[p_index, theta_index]#self.find_control_bound(p_index, theta_index)
+        else:
+            control_lb, control_ub = self.find_control_bound(p_index, theta_index)
 
         (p_lb_, p_ub_), (theta_lb_, theta_ub_) = self.dynamics((control_lb, control_ub),
                                                                (p_lb, p_ub),
@@ -193,10 +196,9 @@ class Verification():
         
         
         
-        
-
-veri = Verification()
-#print(veri.check_property(27, 65, -10, ">="))
-#print(veri.find_control_bound(27, 65))
-#print(veri.overapproaximate_dynamics(27, 65))
-veri.verify()
+if __name__ == "__main__":
+    veri = Verification()
+    #print(veri.check_property(27, 65, -10, ">="))
+    #print(veri.find_control_bound(27, 65))
+    #print(veri.overapproaximate_dynamics(27, 65))
+    veri.verify()

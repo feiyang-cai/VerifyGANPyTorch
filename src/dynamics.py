@@ -2,10 +2,11 @@ import math
 
 def next_state(s, a):
     v, L, dt = 5, 5, 0.05
-    
     p, theta = s
-    p_ = v * dt * math.sin(math.radians(theta)) + p
-    theta_ = v / L * math.tan(math.radians(a)) + theta
 
-    s_ = [p_, theta_]
+    for step in range(20):
+        p += v * dt * math.sin(math.radians(theta))
+        theta += math.degrees(v / L * dt*math.tan(math.radians(a)))
+
+    s_ = [p, theta]
     return s_

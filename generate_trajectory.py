@@ -14,8 +14,8 @@ for initial_crosstrack_error in range(-8, 10, 2):
     s = [initial_crosstrack_error, 0] # 3m, 10 degree
     ts = []
     crosstrack_errors = []
-    for i in range(1000):
-        ts.append(i*0.05)
+    for i in range(20):
+        ts.append(i)
         crosstrack_errors.append(s[0])
         s_np = np.array(s)/[6.36615, 17.247995]
         s_torch = torch.FloatTensor(s_np).to(device)
