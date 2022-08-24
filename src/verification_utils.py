@@ -72,19 +72,34 @@ class Verification():
         lb = left
 
         return np.array([lb, ub], dtype=np.float32)
+
+    def dynamics(self, control_bound, p_bound, theta_bound, steps=20):
+        v, L, dt = 5, 5, 0.05
+        (control_lb, control_ub) = control_bound
+        (p_lb, p_ub) = p_bound
+        (theta_lb, theta_ub) = theta_bound
+
+        for step in range(steps): # 1s
+            p_lb = p_lb + v*dt*math.sin(math.radians(theta_lb))
+            p_ub = p_ub + v*dt*math.sin(math.radians(theta_ub))
+            theta_lb = theta_lb + v/L*dt*math.tan(math.radians(control_lb))
+            theta_ub = theta_ub + v/L*dt*math.tan(math.radians(control_ub))
+        
+        return (p_lb, p_ub), (theta_lb, theta_ub)
+        
+    
+    
     
     def overapproaximate_dynamics(self, p_index, theta_index):
-        v, L, dt = 5, 5, 0.05
         p_lb = self.p_lbs[p_index]
         p_ub = self.p_ubs[p_index]
         theta_lb = self.theta_lbs[theta_index]
         theta_ub = self.theta_ubs[theta_index]
-
         control_lb, control_ub = self.control_graph[p_index, theta_index]#self.find_control_bound(p_index, theta_index)
-        p_lb_ = p_lb + v*dt*math.sin(math.radians(theta_lb))
-        p_ub_ = p_ub + v*dt*math.sin(math.radians(theta_ub))
-        theta_lb_ = theta_lb + v/L*dt*math.tan(math.radians(control_lb))
-        theta_ub_ = theta_ub + v/L*dt*math.tan(math.radians(control_ub))
+
+        (p_lb_, p_ub_), (theta_lb_, theta_ub_) = self.dynamics((control_lb, control_ub),
+                                                               (p_lb, p_ub),
+                                                               (theta_lb, theta_ub))
 
         overapproximated_range = np.array([[p_lb_, p_ub_], [theta_lb_, theta_ub_]], dtype=np.float32)  
 
