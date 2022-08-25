@@ -86,8 +86,6 @@ class Verification():
             theta_ub = theta_ub + math.degrees(v/L*dt*math.tan(math.radians(control_ub)))
         
         return (p_lb, p_ub), (theta_lb, theta_ub)
-        
-    
     
     
     def overapproaximate_dynamics(self, p_index, theta_index):
@@ -128,13 +126,12 @@ class Verification():
         
         return overapproximated_range_index, overapproximated_range
     
-    def verify(self):
+    def get_control_bound_graph(self):
         control_graph_filepath="verification/control_bound_graph_{}_{}_{}_{}_{}_{}.npy".format(self.p_lbs[0], self.p_ubs[-1], len(self.p_lbs), self.theta_lbs[0], self.theta_ubs[-1], len(self.theta_lbs))
-        control_graph_filepath_split = control_graph_filepath[:-4]+"_2.npy"
         self.graph = np.zeros([len(self.p_lbs), len(self.theta_lbs)])
         try:
-            print("loaded the preconstructed control graph")
             self.control_graph = np.load(control_graph_filepath)
+            print("loaded the preconstructed control graph")
         except:
             print("constructing the control graph...")
             self.control_graph = []
@@ -147,58 +144,60 @@ class Verification():
                 np.save(control_graph_filepath[:-4]+"_{}.npy".format(p_idx), np.array(control_graph_line))
             self.control_graph = np.array(self.control_graph)
             np.save(control_graph_filepath, self.control_graph)
-            
-        
-        while not np.all(self.graph):
-            for idx, x in np.ndenumerate(self.graph):
-                if x == 0.0:
-                    helper = {idx:0}
-                    self.verify_cell(idx, helper)
-                    break
-            break
     
-    def verify_cell(self, idx, helper):
-        idx_, _ = self.overapproaximate_dynamics(idx[0], idx[1])
-        [p_index_lb, p_index_ub], [theta_index_lb, theta_index_ub] = idx_
-
-        # if next state will reach out of the graph
-        if p_index_lb < 0 or p_index_ub>=len(self.p_lbs) or theta_index_lb < 0 or theta_index_ub>=len(self.theta_lbs):
-            self.graph[idx] = -1
-            return False
-        # otherwise
-        else:
-            p_indexes = np.array(range(p_index_lb, p_index_ub+1))
-            theta_indexes = np.array(range(theta_index_lb, theta_index_ub+1))
-            next_state_graph = self.graph[p_indexes][:, theta_indexes]
-
-            if p_indexes == np.array([idx[0]]) and theta_indexes == np.array([idx[1]]):
-                # such a state cell converges to itself
-                self.graph[idx] = 1
-                return True
-
-            if -1 in next_state_graph:
-                # there exists unsafe state in next state graph
-                self.graph[idx] = -1
-                return False
-
-            if np.all(next_state_graph):
-                # next states are all safety
-                self.graph[idx] = 1
-                return True
-            
-            # there exists unverified state in next state graph
-
-            
-        
-        
-
-
+    def get_next_step_reachability(self):
+        one_step_reachability_filepath="verification/one_step_reachability_graph_{}_{}_{}_{}_{}_{}.npy".format(self.p_lbs[0], self.p_ubs[-1], len(self.p_lbs), self.theta_lbs[0], self.theta_ubs[-1], len(self.theta_lbs))
+        try:
+            self.one_step_reachability = np.load(one_step_reachability_filepath)
+            print("loaded the preconstructed one step reachability graph.")
+        except:
+            print("constructing the one step reachability graph...")
+            self.get_control_bound_graph()
+            # loop through each cell
+            self.one_step_reachability = []
+            for p_idx in tqdm(range(len(self.p_lbs))):
+                one_step_reachability_line = []
+                for theta_idx in tqdm(range(len(self.theta_lbs)), leave=False):
+                    over_range_index, over_range = self.overapproaximate_dynamics(p_idx, theta_idx)
+                    # if reach out of the graph, over_range_index is set to [[-1, -1], [-1, -1]]
+                    if over_range_index[0][0] < 0 or over_range_index[1][0] < 0 or over_range_index[0][1] >= len(self.p_lbs) or over_range_index[1][1] >= len(self.theta_lbs):
+                        over_range_index = np.array([[-1, -1], [-1, -1]])
+                    next_step_reachability = np.array([over_range_index, over_range])
+                    one_step_reachability_line.append(next_step_reachability)
+                self.one_step_reachability.append(one_step_reachability_line)
+            self.one_step_reachability = np.array(self.one_step_reachability)
+            print(self.one_step_reachability.shape)
+            np.save(one_step_reachability_filepath, self.one_step_reachability)
+    
+    def get_last_step_reachability(self):
+        last_step_reachability_filepath="verification/last_step_reachability_graph_{}_{}_{}_{}_{}_{}.npy".format(self.p_lbs[0], self.p_ubs[-1], len(self.p_lbs), self.theta_lbs[0], self.theta_ubs[-1], len(self.theta_lbs))
+        try:
+            self.last_step_reachability = np.load(last_step_reachability_filepath, allow_pickle=True)
+            print("loaded the preconstructed one step reachability graph.")
+        except:
+            self.get_next_step_reachability()
+            print("constructing the one step reachability graph...")
+            self.last_step_reachability = [[ set() for _ in range(len(self.theta_lbs))] for _ in range(len(self.p_lbs))]
+            for i in tqdm(range(len(self.p_lbs))):
+                for j in tqdm(range(len(self.theta_lbs)), leave=False):
+                    last_range_index = self.one_step_reachability[(i, j)][0]
+                    if last_range_index[0][0] == -1:
+                        continue
+                    else:
+                        for _p in np.array(np.arange(last_range_index[0][0], last_range_index[0][1]+1), dtype=int):
+                            for _theta in np.array(np.arange(last_range_index[1][0], last_range_index[1][1]+1), dtype=int):
+                                self.last_step_reachability[_p][_theta].add((i, j))
+            np.save(last_step_reachability_filepath, self.last_step_reachability)
         
         
         
 if __name__ == "__main__":
     veri = Verification()
+    print(veri.p_lbs)
+    print(veri.theta_lbs)
+
     #print(veri.check_property(27, 65, -10, ">="))
     #print(veri.find_control_bound(27, 65))
     #print(veri.overapproaximate_dynamics(27, 65))
-    veri.verify()
+    #veri.get_control_bound_graph()
+    #veri.get_one_step_reachability()

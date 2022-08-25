@@ -13,18 +13,18 @@ net.load_state_dict(torch.load("./models/allinone/AllInOne.pth", map_location=de
 net.eval()
 
 
-veri = Verification()
+veri = Verification(p_range=[-6, -5], p_num_bin=8, theta_range=[0, 30], theta_num_bin=64)
 
-p_lb = veri.p_lbs[27]
-p_ub = veri.p_ubs[27]
-theta_lb = veri.theta_lbs[65]
-theta_ub = veri.theta_ubs[65]
+p_lb = veri.p_lbs[2]
+p_ub = veri.p_ubs[2]
+theta_lb = veri.theta_lbs[1]
+theta_ub = veri.theta_ubs[1]
 print(p_lb, p_ub, theta_lb, theta_ub)
 ps = np.random.uniform(p_lb, p_ub, [300,1])
 thetas = np.random.uniform(theta_lb, theta_ub, [300,1])
 states = np.concatenate([ps, thetas], axis=1)
 
-over_range_index, over_range = veri.overapproaximate_dynamics(27, 65)
+over_range_index, over_range = veri.overapproaximate_dynamics(2, 1)
 print(over_range)
 
 states_ = []
@@ -64,8 +64,6 @@ ax.set_xticks(veri.p_bins)
 ax.set_yticks(veri.theta_bins)
 ax.set_xlim([-6, -5])
 ax.set_ylim([0, 7])
-plt.savefig("./over.png")
-
-
-
-
+ax.set_xlabel(r"$p$ (m)")
+ax.set_ylabel(r"$\theta$ (degrees)")
+plt.savefig("./overapproximated_dynamics.png")
