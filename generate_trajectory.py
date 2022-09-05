@@ -3,11 +3,14 @@ from src.dynamics import next_state
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
+from src.onnx_net import ONNXNet
 
 # load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-net = AllInOne().to(device)
-net.load_state_dict(torch.load("./models/allinone/AllInOne.pth", map_location=device))
+#net = AllInOne().to(device)
+#net.load_state_dict(torch.load("./models/allinone/AllInOne.pth", map_location=device))
+net = ONNXNet().to(device)
+net.load_state_dict(torch.load("./models/papermodel/AllInOne.pth", map_location=device))
 net.eval()
 
 for initial_crosstrack_error in range(-8, 10, 2):
@@ -27,7 +30,7 @@ for initial_crosstrack_error in range(-8, 10, 2):
         s = next_state(s, a)
     plt.plot(ts, crosstrack_errors)
 
-plt.savefig("trajectory.png")
+plt.savefig("trajectory_paper.png")
     
 
 

@@ -14,7 +14,8 @@ net.load_state_dict(torch.load("./models/allinone/AllInOne.pth", map_location=de
 net.eval()
 
 
-veri = Verification(p_range=[-6, -5], p_num_bin=8, theta_range=[0, 30], theta_num_bin=74)
+veri = Verification()
+#veri.get_control_bound_graph()
 
 fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
 
@@ -29,17 +30,17 @@ for theta_lb in veri.theta_lbs:
     X = [veri.p_bins[0], veri.p_bins[-1]]
     ax.plot(X, Y, 'lightgray', alpha=0.2)
 
-p_lb = veri.p_lbs[2]
-p_ub = veri.p_ubs[2]
-theta_lb = veri.theta_lbs[1]
-theta_ub = veri.theta_ubs[1]
+p_lb = veri.p_lbs[94]
+p_ub = veri.p_ubs[94]
+theta_lb = veri.theta_lbs[112]
+theta_ub = veri.theta_ubs[112]
 print(p_lb, p_ub, theta_lb, theta_ub)
 ps = np.random.uniform(p_lb, p_ub, [300,1])
 thetas = np.random.uniform(theta_lb, theta_ub, [300,1])
 states = np.concatenate([ps, thetas], axis=1)
 
-over_range_index, over_range = veri.overapproaximate_dynamics(2, 1)
-print(over_range)
+over_range_index, over_range = veri.overapproaximate_dynamics(94, 112)
+print(over_range, over_range_index)
 
 states_ = []
 for s in states:
@@ -77,10 +78,10 @@ for x in xs:
 
 ax.set_xticks(veri.p_bins)
 ax.set_yticks(veri.theta_bins)
-ax.set_xticks([-6, -5.8, -5.6, -5.4, -5.2, -5])
-ax.set_yticks([0, 2, 4, 6])
-ax.set_xlim([-6, -5])
-ax.set_ylim([0, 7])
+ax.set_xticks([4.6, 5.0, 5.4, 5.8, 6.2, 6.6, 7.0])
+ax.set_yticks([12, 16, 20, 24])
+ax.set_xlim([4.5, 7])
+ax.set_ylim([8, 24])
 ax.set_xlabel(r"$p$ (m)")
 ax.set_ylabel(r"$\theta$ (degrees)")
-plt.savefig("./overapproximated_dynamics.png")
+plt.savefig("./strange_overapproximated_dynamics.png")

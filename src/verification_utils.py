@@ -24,6 +24,7 @@ class Verification():
         self.network = nnenum.load_onnx_network_optimized(onnx_filepath)
 
     def check_property(self, p_index, theta_index, mid, sign):
+        print(p_index, theta_index, mid, sign)
         init_box = [[-0.8, 0.8], [-0.8, 0.8]]
         p_lb = self.p_lbs[p_index]/6.36615
         p_ub = self.p_ubs[p_index]/6.36615
@@ -42,8 +43,11 @@ class Verification():
         spec = Specification(mat, rhs)
 
         nnenum.set_control_settings()
+        print(init_box, spec)
         res = enumerate_network(init_box, self.network, spec)
         result_str = res.result_str
+        print(result_str)
+        print("___________________________________________")
         return True if result_str=="safe" else False
 
     def find_control_bound(self, p_index, theta_index):
@@ -97,6 +101,7 @@ class Verification():
             control_lb, control_ub = self.control_graph[p_index, theta_index]#self.find_control_bound(p_index, theta_index)
         else:
             control_lb, control_ub = self.find_control_bound(p_index, theta_index)
+        print(control_lb, control_ub)
 
         (p_lb_, p_ub_), (theta_lb_, theta_ub_) = self.dynamics((control_lb, control_ub),
                                                                (p_lb, p_ub),

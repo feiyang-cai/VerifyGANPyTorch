@@ -48,3 +48,11 @@ for step in range(1, steps+1):
 
     reachable_map = reachable_map_
     plot_reachable_map(reachable_map, step)
+
+p_lb = veri.p_lbs[p_start_index]
+p_ub = veri.p_ubs[p_end_index]
+theta_lb = veri.theta_lbs[theta_start_index]
+theta_ub = veri.theta_ubs[theta_end_index]
+ps = np.random.uniform(p_lb, p_ub, [300,1])
+thetas = np.random.uniform(theta_lb, theta_ub, [300,1])
+states = np.concatenate([ps, thetas], axis=1)

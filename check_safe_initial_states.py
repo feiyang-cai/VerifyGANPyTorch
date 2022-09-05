@@ -30,6 +30,9 @@ while len(new_unsafe_state)>0:
                 isSafe[(_i, _j)] = 0
     new_unsafe_state = temp
 
+#print(np.where(isSafe[64:96]==0))
+#isSafe[77,112]=1
+#isSafe[30+64,112]=1
 
 fig, ax = plt.subplots()
 graph = isSafe.transpose()

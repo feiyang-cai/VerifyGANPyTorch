@@ -1,21 +1,21 @@
 from src.verification_utils import Verification
+from src.onnx_net import ONNXNet
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 import torch
 from src.all_in_one import AllInOne
+import matplotlib.pyplot as plt
 from src.dynamics import next_state
+from matplotlib.patches import Rectangle
 
 
-# load model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-net = AllInOne().to(device)
-net.load_state_dict(torch.load("./models/allinone/AllInOne.pth", map_location=device))
+net = ONNXNet().to(device)
+net.load_state_dict(torch.load("./models/papermodel/AllInOne.pth", map_location=device))
 net.eval()
 
 
-veri = Verification(p_range=[-6, -5], p_num_bin=8, theta_range=[0, 30], theta_num_bin=74)
 
+veri = Verification(onnx_filepath="./models/papermodel/AllInOne.onnx", p_range=[-6, -5], p_num_bin=8, theta_range=[0, 30], theta_num_bin=74)
 fig, ax = plt.subplots(figsize=(6, 6), dpi=200)
 
 # plot grids
@@ -28,7 +28,7 @@ for theta_lb in veri.theta_lbs:
     Y = [theta_lb, theta_lb]
     X = [veri.p_bins[0], veri.p_bins[-1]]
     ax.plot(X, Y, 'lightgray', alpha=0.2)
-
+#
 p_lb = veri.p_lbs[2]
 p_ub = veri.p_ubs[2]
 theta_lb = veri.theta_lbs[1]
@@ -40,7 +40,7 @@ states = np.concatenate([ps, thetas], axis=1)
 
 over_range_index, over_range = veri.overapproaximate_dynamics(2, 1)
 print(over_range)
-
+#
 states_ = []
 for s in states:
     s_np = np.array(s)/[6.36615, 17.247995]
@@ -53,8 +53,6 @@ for s in states:
     s_ = next_state(s, a)
     states_.append(s_)
 states_ = np.array(states_)
-
-    
 
 ax.scatter(states[:,0], states[:,1], color='gray', s=0.2)
 ax.scatter(states_[:,0], states_[:,1], color='black', s=0.2)
@@ -83,4 +81,4 @@ ax.set_xlim([-6, -5])
 ax.set_ylim([0, 7])
 ax.set_xlabel(r"$p$ (m)")
 ax.set_ylabel(r"$\theta$ (degrees)")
-plt.savefig("./overapproximated_dynamics.png")
+plt.savefig("./paper_overapproximated_dynamics.png")
